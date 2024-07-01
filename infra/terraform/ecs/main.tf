@@ -40,6 +40,8 @@ resource "aws_ecs_task_definition" "task" {
   container_definitions = jsonencode([{
     name      = each.value.container
     image     = "${aws_ecr_repository.repo.repository_url}:latest"    
+    cpu       = 256
+    memory    = 512
     essential = true
     portMappings = [{
       containerPort = each.value.port
@@ -55,13 +57,14 @@ resource "aws_ecs_service" "service" {
   name               = each.value.name
   cluster            = aws_ecs_cluster.main.id
   task_definition    = aws_ecs_task_definition.task[each.key].arn
-  desired_count      = 1
-  launch_type        = "FARGATE"
+  desired_count      = 2
+  launch_type        = "FARGATE"  
   network_configuration {
     subnets          = var.subnet_ids
     assign_public_ip = true
     security_groups = [aws_security_group.sg.id]
   }
+  force_new_deployment = true
   load_balancer {
     target_group_arn = var.target_group_arns[each.key]
     container_name   = each.value.container
