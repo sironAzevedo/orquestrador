@@ -33,6 +33,6 @@ build/
 .vscode/
 
 ### Terraform ###
-**/infra/.terraform/*
-**/infra/.terraformrc
-**/infra/.tfstate.*
+**/.terraform/*
+**/.terraformrc
+**/.tfstate.*
