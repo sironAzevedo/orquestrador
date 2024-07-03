@@ -6,59 +6,49 @@ resource "aws_ecr_repository" "repo" {
   name = var.ecr_repository_name #"generic-orchestrator"
 }
 
-resource "aws_security_group" "sg" {
-  name        = var.security_group_name #"orchestrator-sg"
-  description = "Allow inbound traffic"
-  vpc_id      = var.vpc_id
-
-  ingress {
-    from_port   = 0
-    to_port     = 65535
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-}
-
 resource "aws_ecs_task_definition" "task" {
-  for_each = { for service in var.service_definitions : service.name => service }
+  count    = length(var.services)
   
-  
-  family                    = each.value.task_def
+  family                    = var.services[count.index].nome
   network_mode              = "awsvpc"
   requires_compatibilities  = ["FARGATE"]
   cpu       = 256
   memory    = 512
   execution_role_arn = var.ecs_task_execution_role_arn
   task_role_arn = var.ecs_task_role_arn
+  tags = merge(
+    var.default_tags,
+    {
+      serviceName = var.services[count.index].nome
+    }
+  )
   container_definitions = jsonencode([{
-    name      = each.value.container
+    name      = var.services[count.index].nome
     image     = "${aws_ecr_repository.repo.repository_url}:latest"    
     cpu       = 256
     memory    = 512
     essential = true
     portMappings = [{
-      containerPort = each.value.port
-      hostPort      = each.value.port
+      containerPort = var.services[count.index].porta
+      hostPort      = var.services[count.index].porta
     }]
   }])
 }
 
 resource "aws_ecs_service" "service" {
-  for_each = { for service in var.service_definitions : service.name => service }
+  count              = length(var.services)
   
-  
-  name               = each.value.name
+  name               = var.services[count.index].nome
   cluster            = aws_ecs_cluster.main.id
-  task_definition    = aws_ecs_task_definition.task[each.key].arn
-  desired_count      = 2
-  launch_type        = "FARGATE"  
+  task_definition    = aws_ecs_task_definition.task[count.index].arn
+  desired_count      = var.services[count.index].auto_scaling_min
+  launch_type        = "FARGATE"
+  tags = merge(
+    var.default_tags,
+    {
+      serviceName = var.services[count.index].nome
+    }
+  )
   network_configuration {
     subnets          = var.subnet_ids
     assign_public_ip = true
@@ -66,8 +56,8 @@ resource "aws_ecs_service" "service" {
   }
   force_new_deployment = true
   load_balancer {
-    target_group_arn = var.target_group_arns[each.key]
-    container_name   = each.value.container
-    container_port   = each.value.port
+    target_group_arn = var.target_group_arns[count.index]
+    container_name   = var.services[count.index].nome
+    container_port   = var.services[count.index].porta
   }
 }

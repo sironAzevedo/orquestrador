@@ -4,17 +4,19 @@ module "vpc" {
   subnet_cidrs  = var.subnet_cidrs
 }
 
+module "default_tags" {
+  source = "./tags"
+  serviceName = var.application_name
+  github_repo_id = var.github_repo_id
+}
+
 module "load_balancers" {
   source                  = "./load_balancer"
   nlb_name                = "orchestrator-nlb"
-  alb_name                = "orchestrator-alb"
-  nlb_target_group_name   = "nlb-target-group"
-  alb_target_group_name   = "alb-target-group"
-  alb_target_group_port   = 80
-  nlb_target_group_port   = 80
+  alb_name                = "orchestrator-alb"  
   vpc_id                  = module.vpc.vpc_id
   subnet_ids              = module.vpc.subnet_ids
-  service_definitions     = local.service_definitions
+  services                = var.services
 }
 
 module "ecs" {
@@ -26,9 +28,9 @@ module "ecs" {
   vpc_id                      = module.vpc.vpc_id
   subnet_ids                  = module.vpc.subnet_ids
   ecs_task_execution_role_arn = module.iam.ecs_task_execution_role_arn
-  ecs_task_role_arn           = module.iam.ecs_task_role_arn 
-  service_definitions         = local.service_definitions
-  target_group_arns           = module.load_balancers.target_group_arns
+  ecs_task_role_arn           = module.iam.ecs_task_role_arn
+  target_group_arns           = module.load_balancers.alb_target_group_arn
+  default_tags                = module.default_tags.tags
 }
 
 module "iam" {
@@ -41,16 +43,4 @@ module "cloudwatch" {
   sns_topic_name          = "orchestrator-sns-topic"
   log_group_qtd_retention = 7
   cluster_name            = module.ecs.cluster_name
-}
-
-locals {
-  service_definitions = [
-    for idx, service_name in var.services :
-    {
-      name       = service_name
-      port       = 8080 + idx
-      task_def   = "${service_name}-task"
-      container  = "${service_name}-container"
-    }
-  ]
 }

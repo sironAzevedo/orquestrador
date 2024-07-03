@@ -3,6 +3,12 @@ variable "ecs_cluster_name" {
   type        = string
 }
 
+variable "aws_ecs_cluster_id" {
+  description = "ecs cluster id"
+  type        = string
+}
+
+
 variable "ecr_repository_name" {
   description = "ecr repository name"
   type        = string
@@ -21,6 +27,11 @@ variable "security_group_name" {
 variable "subnet_ids" {
   description = "Subnet IDs"
   type        = list(string)
+}
+
+variable "alb_listener_arn" {
+  description = "alb listener arn"
+  type        = string
 }
 
 variable "ecs_task_execution_role_arn" {
@@ -50,10 +61,4 @@ variable "target_group_arns" {
 
 variable "default_tags" {
   type = map(any)
-}
-
-variable "allowed_ips" {
-  description = "List of allowed IPs for ingress traffic"
-  type        = list(string)
-  default     = ["0.0.0.0/0"]
 }

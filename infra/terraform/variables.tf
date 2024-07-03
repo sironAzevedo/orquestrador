@@ -17,19 +17,33 @@ variable "subnet_cidrs" {
 }
 
 variable "services" {
-  description = "List of services to create"
-  type        = list(string)
-  default     = ["orchestrator-cartao", "orchestrator-conta"]
-}
-
-variable "service_ports" {
-  description = "List of ports for the services"
-  type        = list(number)
-  default     = [8080, 8081]
+  description = "List of service configurations"
+  type = list(object({
+    nome             = string
+    porta            = number
+    auto_scaling_max = number
+    auto_scaling_min = number
+  }))
+  default = [
+    { nome = "orchestrator-cartao", porta = 8080, auto_scaling_max = 2, auto_scaling_min = 1 },
+    { nome = "orchestrator-conta", porta = 8081, auto_scaling_max = 2, auto_scaling_min = 1 }
+  ]
 }
 
 variable "application_name" {
   description = "Application name"
   type        = string
   default     = "orchestrator"
+}
+
+variable "github_repo_id" {
+  type = string
+  description = "Id do repostório Github"
+  default = "821738371"
+}
+
+variable "github_repo_name" {
+  type = string
+  description = "nome do repostório Github"
+  default = "orquestrador"
 }

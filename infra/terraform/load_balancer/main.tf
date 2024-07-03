@@ -21,28 +21,34 @@ resource "aws_lb" "alb" {
 }
 
 resource "aws_lb_listener" "nlb_listener" {
+  count       = length(var.services)
+
   load_balancer_arn = aws_lb.nlb.arn
-  port              = "80"
+  port              = var.services[count.index].porta
   protocol          = "TCP"
   default_action {
     type             = "forward"
-    target_group_arn = aws_lb_target_group.nlb_target_group.arn
+    target_group_arn = aws_lb_target_group.nlb_target_group[count.index].arn
   }
 }
 
 resource "aws_lb_listener" "alb_listener" {
+  count       = length(var.services)
+
   load_balancer_arn = aws_lb.alb.arn
-  port              = "80"
+  port              = var.services[count.index].porta
   protocol          = "HTTP"
   default_action {
     type             = "forward"
-    target_group_arn = aws_lb_target_group.alb_target_group.arn
+    target_group_arn = aws_lb_target_group.alb_target_group[count.index].arn
   }
 }
 
 resource "aws_lb_target_group" "nlb_target_group" {
-  name     = var.nlb_target_group_name
-  port     = var.nlb_target_group_port #80
+  count       = length(var.services)
+
+  name     = "nlb-tg-${var.services[count.index].nome}"
+  port     = var.services[count.index].porta
   protocol = "TCP"
   vpc_id   = var.vpc_id
   target_type = "ip"
@@ -58,8 +64,10 @@ resource "aws_lb_target_group" "nlb_target_group" {
 }
 
 resource "aws_lb_target_group" "alb_target_group" {
-  name     = var.alb_target_group_name
-  port     = var.alb_target_group_port #80
+  count       = length(var.services)
+
+  name     = "alb-tg-${var.services[count.index].nome}"
+  port     = var.services[count.index].porta
   protocol = "HTTP"
   vpc_id   = var.vpc_id
   target_type = "ip"
@@ -71,54 +79,5 @@ resource "aws_lb_target_group" "alb_target_group" {
     healthy_threshold   = 5
     unhealthy_threshold = 2
     protocol            = "HTTP"
-  }
-}
-
-resource "aws_lb_target_group" "tg" {
-  for_each = { for service in var.service_definitions : service.name => service }
-
-  name     = each.value.name
-  port     = each.value.port
-  protocol = "HTTP"
-  vpc_id   = var.vpc_id
-  target_type = "ip"
-
-  health_check {
-    interval            = 30
-    path                = "/"
-    timeout             = 5
-    healthy_threshold   = 5
-    unhealthy_threshold = 2
-    protocol            = "HTTP"
-  }
-}
-
-# resource "aws_lb_listener_rule" "nlb_listener_rule" {
-#   for_each = { for service in var.service_definitions : service.name => service }
-
-#   listener_arn = aws_lb_listener.nlb_listener.arn
-#   action {
-#     type             = "forward"
-#     target_group_arn = aws_lb_target_group.tg[each.key].arn
-#   }
-#   condition {
-#     path_pattern {
-#       values = ["/*"]
-#     }
-#   }
-# }
-
-resource "aws_lb_listener_rule" "alb_listener_rule" {
-  for_each = { for service in var.service_definitions : service.name => service }
-
-  listener_arn = aws_lb_listener.alb_listener.arn
-  action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.tg[each.key].arn
-  }
-  condition {
-    path_pattern {
-      values = ["/*"]
-    }
   }
 }

@@ -6,3 +6,10 @@ A aplicação "Orchestrator" será construída utilizando Java 17 e Spring Boot.
 Comando docker para executar o terraform localmente. Com esse comando não é necessario instalar o terraform na maquina:  
 docker run -it -v $PWD:/app -w /app --entrypoint "" hashicorp/terraform:light sh  
 OBS:  O $PWD é o path da pasta dos arquivos .tf
+
+### Comandos:  
+* terraform init -upgrade - Inicializar o projeto
+* terraform validate
+* terraform plan -out "nome do plano"
+* terraform apply
+* terraform destroy
