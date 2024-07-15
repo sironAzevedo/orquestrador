@@ -4,3 +4,33 @@ server:
 spring:
   application:
     name: orquestrador-service
+  cloud:
+    config:
+      enabled: false
+
+cloud:
+  aws:
+    credentials:
+      access-key: ${AWS_ACCESS_KEY:test}
+      secret-key: ${AWS_SECRET_KEY:test}
+    region:
+      static: ${AWS_REGION:us-east-1}
+    endpoint:
+      uri: http://localhost:4566
+    s3:
+      endpoint: http://s3.localhost.localstack.cloud:4566/
+
+events:
+  sns:
+    topic: sns-transaction
+  sqs:
+    queue: ${AWS_SQS_QUEUE_NAME:test}
+  kafka:
+    bootstrapAddress: localhost:9092
+    grupo-id: orch-id
+    topic:
+      offset:
+        reset: earliest
+      transaction-nacional: ${TOPIC_TRANSACTION_NACIONAL:transaction-nacional-topic}
+      transaction-internacional: ${TOPIC_TRANSACTION_INTERNACIONAL:transaction-internacional-topic}
+      motor-qualidade: ${TOPIC_MOTOR_QUALIDADE:motor-qualidade-topic}

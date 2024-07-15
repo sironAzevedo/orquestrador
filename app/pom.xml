@@ -24,6 +24,8 @@
 		<org.lombok.version>1.18.22</org.lombok.version>
 		<springdoc-openapi-ui.version>1.6.7</springdoc-openapi-ui.version>
 		<jackson.version>2.17.0</jackson.version>
+		<spring-cloud.version>2023.0.1</spring-cloud.version>
+		<spring.cloud-aws>2.4.4</spring.cloud-aws>
 	</properties>
 
 	<dependencies>
@@ -49,6 +51,19 @@
 		</dependency>
 
 		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-stream</artifactId>
+		</dependency>
+
+		<!-- Necessary to avoid ClassNotFoundException: org.springframework.messaging.handler.annotation.support.PayloadArgumentResolver -->
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-messaging</artifactId>
+			<version>5.3.31</version>
+		</dependency>
+
+
+		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
 			<optional>true</optional>
@@ -66,6 +81,12 @@
 			<version>0.2.0</version>
 		</dependency>
 
+		<dependency>
+			<groupId>com.br.azevedo</groupId>
+			<artifactId>commons-utils</artifactId>
+			<version>1.0.5</version>
+		</dependency>
+
 		<!-- SWAGGER -->
 		<dependency>
 			<groupId>org.springdoc</groupId>
@@ -73,7 +94,51 @@
 			<version>2.5.0</version>
 		</dependency>
 		<!-- SWAGGER -->
+
+		<!-- AWS-->
+		<dependency>
+			<groupId>io.awspring.cloud</groupId>
+			<artifactId>spring-cloud-starter-aws</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>io.awspring.cloud</groupId>
+			<artifactId>spring-cloud-starter-aws-messaging</artifactId>
+		</dependency>
+
+	<!-- KAFKA-->
+	<dependency>
+		<groupId>org.springframework.kafka</groupId>
+		<artifactId>spring-kafka</artifactId>
+	</dependency>
+
+	<dependency>
+		<groupId>org.springframework.cloud</groupId>
+		<artifactId>spring-cloud-stream-binder-kafka</artifactId>
+	</dependency>
+
+
 	</dependencies>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-dependencies</artifactId>
+				<version>${spring-cloud.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>io.awspring.cloud</groupId>
+				<artifactId>spring-cloud-aws-dependencies</artifactId>
+				<version>${spring.cloud-aws}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 
 	<build>
 		<plugins>
